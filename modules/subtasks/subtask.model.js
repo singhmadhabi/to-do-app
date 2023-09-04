@@ -7,7 +7,6 @@ const subtaskSchema = new Schema({
     require: true,
     default: "pending",
   },
-  created_at: { type: Date, default: Date.now() },
 });
 
-module.exports = model("Todo", subtaskSchema);
+module.exports = model("Subtask", subtaskSchema);
