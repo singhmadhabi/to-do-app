@@ -1,65 +1,32 @@
 const router = require("express").Router();
-//const { model } = require("mongoose");
-const SubtaskController = require("./subtask.controller");
+const Controller = require("./subtask.controller");
 
-//create
 router.post("/", async (req, res, next) => {
   try {
-    const result = await SubtaskController.create(req.body);
+    const { title, todo } = req.body;
+    if (!title || !todo) throw new Error("Title or Todo is missing...");
+    const result = await Controller.create({ title, todo });
     res.json({ data: result, msg: "success" });
   } catch (e) {
     next(e);
   }
 });
 
-//list
-router.get("/", async (req, res, next) => {
-  try {
-    const result = await SubtaskController.list();
-    res.json({ data: result, msg: "success" });
-  } catch (e) {
-    next(e);
-  }
-});
-
-//getById
-router.get("/:id", async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const result = await SubtaskController.getById(id);
-    res.json({ data: result, msg: "success" });
-  } catch (e) {
-    next(e);
-  }
-});
-
-//updateById
-router.put("/:id", async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const result = await SubtaskController.updateById(id, req.body);
-    res.json({ data: result, msg: "success" });
-  } catch (e) {
-    next(e);
-  }
-});
-
-//updateStatus
 router.patch("/:id", async (req, res, next) => {
   try {
     const { id } = req.params;
-    const result = await SubtaskController.updateStatus(id, req.body);
+    const { status } = req.body;
+    const result = await Controller.updateStatus(id, { status });
     res.json({ data: result, msg: "success" });
   } catch (e) {
     next(e);
   }
 });
 
-//removeById
 router.delete("/:id", async (req, res, next) => {
   try {
     const { id } = req.params;
-    const result = await SubtaskController.removeById(id);
+    const result = await Controller.removeById(id);
     res.json({ data: result, msg: "success" });
   } catch (e) {
     next(e);

@@ -1,42 +1,46 @@
-//const { model } = require("mongoose");
-const model = require("./todo.model");
-const SubtaskModel = require("../subtasks/subtask.model");
-const { update } = require("../subtasks/subtask.controller");
-
-//CRUD
+const Model = require("./todo.model");
+const subtaskModel = require("../subtasks/subtask.model");
 
 const create = async (payload) => {
-  if (!payload) throw new Error("Must send some Payload");
-  return await model.create(payload);
+  return await Model.create(payload);
 };
 
 const list = async () => {
-  return await model.find();
+  return await Model.aggregate([
+    {
+      $lookup: {
+        from: "subtasks",
+        localField: "_id",
+        foreignField: "todo",
+        as: "subtasks",
+      },
+    },
+    {
+      $project: {
+        subtasks: 1,
+        title: 1,
+        status: 1,
+      },
+    },
+  ]);
 };
 
-const getById = async (id) => {
-  return await model.findOne({ _id: id });
-};
-
-const updateById = async (id) => {
-  return await model.findOneAndUpdate({ _id: id }, payload, { new: true });
-};
-
-const updateStatus = async (id, payload) => {
-  const { status } = payload;
-  if (!status) throw new Error("status is required");
-  return await model.findOneAndUpdate({ _id: id }, { status }, { new: true });
+const updateStatus = async (id, status) => {
+  const allSubtasks = await subtaskModel.find({ todo: id });
+  if (status.status === "completed") {
+    allSubtasks.map(async (subtask) => {
+      await subtaskModel.findOneAndUpdate(
+        { _id: subtask._id },
+        { status: "completed" },
+        { new: true }
+      );
+    });
+  }
+  return await Model.findOneAndUpdate({ _id: id }, status, { new: true });
 };
 
 const removeById = async (id) => {
-  return await model.deleteOne({ _id: id });
+  return await Model.deleteOne({ _id: id });
 };
 
-model.exports = {
-  create,
-  list,
-  getById,
-  updateById,
-  updateStatus,
-  removeById,
-};
+module.exports = { create, list, removeById, updateStatus };
